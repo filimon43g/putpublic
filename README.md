@@ -3,6 +3,8 @@ Putpublic is a simple console application for sharing text output to web.
 
 ### Installation:
 ```
+git clone https://github.com/filimon43g/putpublic.git
+cd ./putpublic
 sudo ./install.sh
 ```
 
