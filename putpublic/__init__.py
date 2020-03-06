@@ -6,7 +6,7 @@ import logging
 
 PP_API = "https://api.putpublic.com"
 PP_KEY = "putpublicfreekeyforeveryone"
-USAGE = "Usage: <STDOUT> | python putpublic.py"
+USAGE = "Usage: <STDOUT> | putpublic"
 
 
 def get_presigned_url():
