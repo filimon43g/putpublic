@@ -2,10 +2,9 @@
 Putpublic is a simple console application for sharing text output to web. 
 
 ### Installation:
-```shell script
+```
 sudo ./install.sh
 ```
-
 
 ### Usage:
 ```
@@ -13,7 +12,7 @@ sudo ./install.sh
 ```
 
 #### Example:
-```shell script
+```
 % ls | putpublic
 File will be available only one day: https://putpublic.com/text/file/...
 ```
