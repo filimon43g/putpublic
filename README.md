@@ -15,4 +15,5 @@ sudo ./install.sh
 #### Example:
 ```shell script
 % ls | putpublic
-File will be available only one day: https://putpublic.com/text/file/...```
+File will be available only one day: https://putpublic.com/text/file/...
+```
