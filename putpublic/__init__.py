@@ -3,10 +3,15 @@ from urllib.parse import urljoin
 import requests
 import json
 import logging
+from spinner import Spinner
 
 PP_API = "https://api.putpublic.com"
 PP_KEY = "putpublicfreekeyforeveryone"
 USAGE = "Usage: <STDOUT> | putpublic"
+
+
+def utf8len(s):
+    return len(s.encode('utf-8'))
 
 
 def get_presigned_url():
@@ -23,21 +28,29 @@ def get_presigned_url():
 def upload_to_pp(tmp_file):
     response = get_presigned_url()
     files = {'file': tmp_file}
+
+    if utf8len(tmp_file) > response['max_size']:
+        print(f'String size is too big. Max size: {response["max_size"]/(1024*1024)} MB')
+        exit(1)
+    spinner = Spinner()
+    print("Uploading...")
+    spinner.start()
     try:
         http_response = requests.post(response['url'], data=response['fields'], files=files)
     except requests.exceptions.ConnectionError:
         logging.error(f"Could not connect to {response['url']}, please check your network settings")
         sys.exit(1)
-    logging.info(f'File upload HTTP status code: {http_response.status_code}')
-    return response['file_url']
+    spinner.stop()
+    print(f'Uploaded')
+    return {"file_url": response['file_url'], "Message": response['Message']}
 
 
 def main():
     if not sys.stdin.isatty():
         s = "".join(sys.stdin.readlines())
-        link = upload_to_pp(s)
-        if link:
-            print(f"File will be available only one day: {link}")
+        upload_response = upload_to_pp(s)
+        if upload_response:
+            print(f"{upload_response['Message']}\n{upload_response['file_url']}")
     else:
         print(USAGE)
 
