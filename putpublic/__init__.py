@@ -24,25 +24,28 @@ def utf8len(s):
     return len(s.encode('utf-8'))
 
 
-def get_presigned_zip_url():
-    # todo: write function
-    url = urljoin(PP_API, "s3zipurl")
-    return common_presigned_url(url)
+# def get_presigned_zip_url():
+#     # todo: write function
+#     url = urljoin(PP_API, "s3zipurl")
+#     return common_presigned_url(url)
+#
+#
+# def get_presigned_url():
+#     url = urljoin(PP_API, "s3url")
+#     return common_presigned_url(url)
 
 
-def get_presigned_url():
+def get_presigned_url(encrypt=False):
     url = urljoin(PP_API, "s3url")
-    return common_presigned_url(url)
-
-
-def common_presigned_url(url):
     headers = {"x-api-key": PP_KEY}
+    params = {'encrypt': encrypt} if encrypt else {}
     try:
-        r = requests.get(url, headers=headers)
+        r = requests.get(url, headers=headers, params=params)
     except requests.exceptions.ConnectionError:
         logging.error(f"Could not connect to {PP_API}, please check your network settings")
         sys.exit(1)
-    return json.loads(r.json()['body'])
+    # print(r.json())
+    return r.json()
 
 
 def upload_to_pp(tmp_file):
@@ -61,13 +64,15 @@ def upload_to_pp(tmp_file):
         logging.error(f"Could not connect to {response['url']}, please check your network settings")
         sys.exit(1)
     spinner.stop()
-    print(f'Uploaded')
-    return {"file_url": response['file_url'], "Message": response['Message']}
+    if http_response.status_code == 204:
+        print(f'Uploaded')
+        return {"file_url": response['file_url'], "Message": response['Message']}
+    else:
+        logging.error(f"Could not upload file, message: {http_response.text}")
 
 
 def upload_zip_to_pp(s):
-    response = get_presigned_zip_url()
-
+    response = get_presigned_url(encrypt=True)
     if utf8len(s) > response['max_size']:
         print(f'String size is too big. Max size: {response["max_size"]/(1024*1024)} MB')
         exit(1)
@@ -88,9 +93,13 @@ def upload_zip_to_pp(s):
         logging.error(f"Could not connect to {response['url']}, please check your network settings")
         sys.exit(1)
     spinner.stop()
-    print(f'Uploaded')
-    return {"file_url": response['file_url'], "Message": response['Message']}
+    os.remove(zip_file)
 
+    if http_response.status_code == 204:
+        print(f'Uploaded')
+        return {"file_url": response['file_url'], "Message": response['Message']}
+    else:
+        logging.error(f"Could not upload file, message: {http_response.text}")
 
 
 def create_encrypted_zip_file(s):
@@ -107,16 +116,15 @@ def create_encrypted_zip_file(s):
 
 def main():
     parser = argparse.ArgumentParser(description="putpublic - makes your texts public", usage=USAGE)
-    parser.add_argument('-e', action='store_true', default=False, help="makes and uploads zip file "
+    parser.add_argument('-p', action='store_true', default=False, help="makes and uploads zip file "
                                                                                     "protected by auto-generated "
                                                                                     "password")
     args = parser.parse_args()
-    print(args.e)
 
     if not sys.stdin.isatty():
         s = "".join(sys.stdin.readlines())
         if args.e:
-            upload_response = create_encrypted_zip_file(s)
+            upload_response = upload_zip_to_pp(s)
         else:
             upload_response = upload_to_pp(s)
         if upload_response:
