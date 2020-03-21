@@ -24,17 +24,6 @@ def utf8len(s):
     return len(s.encode('utf-8'))
 
 
-# def get_presigned_zip_url():
-#     # todo: write function
-#     url = urljoin(PP_API, "s3zipurl")
-#     return common_presigned_url(url)
-#
-#
-# def get_presigned_url():
-#     url = urljoin(PP_API, "s3url")
-#     return common_presigned_url(url)
-
-
 def get_presigned_url(encrypt=False):
     url = urljoin(PP_API, "s3url")
     headers = {"x-api-key": PP_KEY}
@@ -44,7 +33,6 @@ def get_presigned_url(encrypt=False):
     except requests.exceptions.ConnectionError:
         logging.error(f"Could not connect to {PP_API}, please check your network settings")
         sys.exit(1)
-    # print(r.json())
     return r.json()
 
 
@@ -121,12 +109,12 @@ def create_encrypted_zip_file(s):
 
 def main():
     parser = argparse.ArgumentParser(description="putpublic - makes password protected zip file and upload it to web", usage=USAGE)
-    parser.add_argument('-p', action='store_true', default=False, help="upload text without password protecting")
+    parser.add_argument('-a', action='store_true', default=False, help="upload text without password protecting")
     args = parser.parse_args()
 
     if not sys.stdin.isatty():
         s = "".join(sys.stdin.readlines())
-        if args.p:
+        if args.a:
             upload_response = upload_to_pp(s)
         else:
             upload_response = upload_zip_to_pp(s)
