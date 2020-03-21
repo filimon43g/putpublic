@@ -77,7 +77,7 @@ def upload_zip_to_pp(s):
         print(f'String size is too big. Max size: {response["max_size"]/(1024*1024)} MB')
         exit(1)
 
-    zip_file = create_encrypted_zip_file(s)
+    zip_file, password = create_encrypted_zip_file(s)
     if not zip_file:
         logging.error(f"ZIP file wasn't created")
         return False
@@ -97,6 +97,7 @@ def upload_zip_to_pp(s):
 
     if http_response.status_code == 204:
         print(f'Uploaded')
+        print(f"Zip file password: {password}")
         return {"file_url": response['file_url'], "Message": response['Message']}
     else:
         logging.error(f"Could not upload file, message: {http_response.text}")
@@ -111,22 +112,22 @@ def create_encrypted_zip_file(s):
     pyminizip.compress(tmp_text_file, None, out_zip_file, password, 0)
     os.remove(tmp_text_file)
     if os.path.exists(out_zip_file):
-        return out_zip_file
+        return out_zip_file, password
+    else:
+        return None, None
 
 
 def main():
-    parser = argparse.ArgumentParser(description="putpublic - makes your texts public", usage=USAGE)
-    parser.add_argument('-p', action='store_true', default=False, help="makes and uploads zip file "
-                                                                                    "protected by auto-generated "
-                                                                                    "password")
+    parser = argparse.ArgumentParser(description="putpublic - makes password protected zip file and upload it to web", usage=USAGE)
+    parser.add_argument('-p', action='store_true', default=False, help="upload text without password protecting")
     args = parser.parse_args()
 
     if not sys.stdin.isatty():
         s = "".join(sys.stdin.readlines())
-        if args.e:
-            upload_response = upload_zip_to_pp(s)
-        else:
+        if args.p:
             upload_response = upload_to_pp(s)
+        else:
+            upload_response = upload_zip_to_pp(s)
         if upload_response:
             print(f"{upload_response['Message']}\n{upload_response['file_url']}")
     else:
