@@ -121,7 +121,7 @@ def main():
         if upload_response:
             print(f"{upload_response['Message']}\n{upload_response['file_url']}")
     else:
-        print(USAGE)
+        parser.print_help()
 
 
 if __name__ == '__main__':
