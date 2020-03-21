@@ -3,7 +3,7 @@ from urllib.parse import urljoin
 import requests
 import json
 import logging
-from spinner import Spinner
+from putpublic.spinner import Spinner
 import pyminizip
 import argparse
 import string
