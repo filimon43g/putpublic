@@ -81,18 +81,20 @@ def upload_zip_to_pp(s):
     if not zip_file:
         logging.error(f"ZIP file wasn't created")
         return False
+    with open(zip_file, "rb") as zip_object:
+        files = {'file': zip_object}
 
-    files = {'file': zip_file}
+        spinner = Spinner()
+        print("Uploading...")
+        spinner.start()
+        try:
+            http_response = requests.post(response['url'], data=response['fields'], files=files)
+        except requests.exceptions.ConnectionError:
+            logging.error(f"Could not connect to {response['url']}, please check your network settings")
+            os.remove(zip_file)
+            sys.exit(1)
+        spinner.stop()
 
-    spinner = Spinner()
-    print("Uploading...")
-    spinner.start()
-    try:
-        http_response = requests.post(response['url'], data=response['fields'], files=files)
-    except requests.exceptions.ConnectionError:
-        logging.error(f"Could not connect to {response['url']}, please check your network settings")
-        sys.exit(1)
-    spinner.stop()
     os.remove(zip_file)
 
     if http_response.status_code == 204:
