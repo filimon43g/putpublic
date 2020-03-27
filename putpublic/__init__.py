@@ -97,8 +97,8 @@ def create_encrypted_zip_file(s):
     out_zip_file = os.path.join("./", random_string() + ".zip")
     tmp_text_file = os.path.join("./putpublic_unencrypted_file.txt")
     password = random_string()
-    with open(tmp_text_file, 'w') as f:
-        f.write(s)
+    with open(tmp_text_file, 'wt') as f:
+        f.writelines("%s\r\n" % l for l in s.splitlines())
     pyminizip.compress(tmp_text_file, None, out_zip_file, password, 0)
     os.remove(tmp_text_file)
     if os.path.exists(out_zip_file):
@@ -118,10 +118,13 @@ def main():
             upload_response = upload_to_pp(s)
         else:
             upload_response = upload_zip_to_pp(s)
+
         if upload_response:
             print(f"{upload_response['Message']}\n{upload_response['file_url']}")
     else:
         parser.print_help()
+
+    #todo: check new lines in notepad
 
 
 if __name__ == '__main__':
